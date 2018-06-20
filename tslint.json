@@ -1,0 +1,88 @@
+{
+	"extends": [
+		"tslint:recommended"
+	],
+	"rules": {
+		//Common standard to not prefix interfaces
+		"interface-name": [
+			true,
+			"never-prefix"
+		],
+		//Too much effort for too little gain
+		"ordered-imports": false,
+		"object-literal-sort-keys": false,
+		//Only required for a few outdated unix functions
+		"eofline": false,
+		//Forcing leading space or not in comments, doesn't really matter
+		"comment-format": false,
+		//A high number, use your own judgement, but there are limits
+		"max-line-length": [
+			true,
+			180
+		],
+		//Not too strict with public vs private and static vs non-static, but use some ordering
+		"member-ordering": [
+			true,
+			{
+				"order": [
+					{
+						"name": "field",
+						"kinds": [
+							"public-static-field",
+							"protected-static-field",
+							"private-static-field",
+							"public-instance-field",
+							"protected-instance-field",
+							"private-instance-field"
+						]
+					},
+					"constructor",
+					{
+						"name": "method",
+						"kinds": [
+							"public-static-method",
+							"protected-static-method",
+							"private-static-method",
+							"public-instance-method",
+							"protected-instance-method",
+							"private-instance-method"
+						]
+					}
+				]
+			}
+		],
+		//Do not add commas if there is only 1 element or if it is the last element.
+		"trailing-comma": {
+			"options": {
+				"singleline": "never",
+				"multiline": "never"
+			}
+		},
+		//Consistently use undefined.
+		"no-null-keyword": true,
+		//With related classes it can be better to have them in the same file.
+		"max-classes-per-file": false,
+		//A block is sometimes required (for example error catching), but not always required to do something.
+		"no-empty": false,
+		//Sometimes bitwise operators are needed for performance.
+		"no-bitwise": false,
+		//Ensure all methods have a return type so you can quickly see it.
+		"typedef": [
+			true,
+			"call-signature"
+		],
+		//Using tabs allows users to change the intend size without changing the code.
+		"indent": [
+			true,
+			"tabs"
+		],
+		//It seems to expect weird parameter/argument alignment which gives problems when having many parameters
+		"align": [
+			true,
+			"statements",
+			"members"
+		],
+		//Avoid common mistakes
+		"strict-boolean-expressions": true
+	}
+}

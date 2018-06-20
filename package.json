@@ -1,0 +1,61 @@
+{
+	"name": "validana-client",
+	"version": "1.0.0",
+	"private": true,
+	"description": "The client for Validana to connect to the Server.",
+	"author": "Coinversable BV",
+	"homepage": "https://validana.io/",
+	"license": "GNU AGPLv3",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Coinversable/validana-client.git"
+	},
+	"main": "dist/bundles/validana-client.umd.js",
+	"typings": "dist/validana-client.d.ts",
+	"ngPackage": {
+		"lib": {
+			"entryFile": "src/index.ts",
+			"umdModuleIds": {
+				"raven-js": "ravenJs",
+				"bitcoinjs-lib": "bitcoinjsLib"
+			}
+		},
+		"whitelistedNonPeerDependencies": [
+			"."
+		]
+	},
+	"keywords": [
+		"coinversable",
+		"validana",
+		"client",
+		"api",
+		"frontend"
+	],
+	"scripts": {
+		"tslint": "tslint --project tsconfig.json -c tslint.json src/**/*.ts",
+		"build": "ng-packagr -p package.json"
+	},
+	"files": [
+		"dist/"
+	],
+	"dependencies": {
+		"@types/bitcoinjs-lib": "^3.3.3",
+		"bitcoinjs-lib": "^3.3.2",
+		"buffer": "^5.1.0",
+		"global": "^4.3.2",
+		"md5": "^2.2.1",
+		"randombytes": "^2.0.6",
+		"raven-js": "^3.24.0"
+	},
+	"devDependencies": {
+		"@angular/compiler": "^5.2.9",
+		"@angular/compiler-cli": "^5.2.9",
+		"@angular/core": "^5.2.9",
+		"ng-packagr": "^2.4.5",
+		"tsickle": "^0.27.2",
+		"typescript": "^2.8.3"
+	},
+	"module": "dist/esm5/validana-client.js",
+	"es2015": "dist/esm2015/validana-client.js",
+	"metadata": "dist/validana-client.metadata.json"
+}
