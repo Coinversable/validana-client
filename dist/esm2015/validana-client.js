@@ -168,7 +168,7 @@ Log.options = { tags: { clientVersion: "1.0.0" }, extra: {} };
  */
 const md5Func = require("md5");
 const randomBytes = require("randombytes");
-const Buffer = require("buffer/").Buffer;
+const Buffer = require("buffer").Buffer;
 /**
  * Functions for hashing, and encoding binary data into other formats and back again.
  */
@@ -714,7 +714,7 @@ class VObservable {
  * Use of this source code is governed by a AGPLv3-style license that can be
  * found in the LICENSE file at https://validana.io/license
  */
-const Buffer$1 = require("buffer/").Buffer;
+const Buffer$1 = require("buffer").Buffer;
 /** @enum {number} */
 const Connected = { Yes: 0, NoJustStarted: 1, NoDisconnected: 2, NoCrashed: 3, NoNotSupported: 4, };
 Connected[Connected.Yes] = "Yes";
@@ -1138,7 +1138,7 @@ class Helper {
  * Use of this source code is governed by a AGPLv3-style license that can be
  * found in the LICENSE file at https://validana.io/license
  */
-const Buffer$2 = require("buffer/").Buffer;
+const Buffer$2 = require("buffer").Buffer;
 /**
  * A public key. We use and accept compressed keys only.
  */

@@ -107,7 +107,7 @@ Log.options = { tags: { clientVersion: "1.0.0" }, extra: {} };
  */
 var md5Func = require("md5");
 var randomBytes = require("randombytes");
-var Buffer = require("buffer/").Buffer;
+var Buffer = require("buffer").Buffer;
 var Crypto = /** @class */ (function () {
     function Crypto() {
     }
@@ -450,7 +450,7 @@ var VObservable = /** @class */ (function () {
  * Use of this source code is governed by a AGPLv3-style license that can be
  * found in the LICENSE file at https://validana.io/license
  */
-var Buffer$1 = require("buffer/").Buffer;
+var Buffer$1 = require("buffer").Buffer;
 var Connected = { Yes: 0, NoJustStarted: 1, NoDisconnected: 2, NoCrashed: 3, NoNotSupported: 4, };
 Connected[Connected.Yes] = "Yes";
 Connected[Connected.NoJustStarted] = "NoJustStarted";
@@ -852,7 +852,7 @@ var Helper = /** @class */ (function () {
  * Use of this source code is governed by a AGPLv3-style license that can be
  * found in the LICENSE file at https://validana.io/license
  */
-var Buffer$2 = require("buffer/").Buffer;
+var Buffer$2 = require("buffer").Buffer;
 var PublicKey = /** @class */ (function () {
     function PublicKey(publicKey) {
         if (publicKey instanceof Buffer$2) {

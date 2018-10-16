@@ -7,7 +7,7 @@
  */
 
 // tslint:disable-next-line:no-var-requires
-const Buffer: typeof global.Buffer = require("buffer/").Buffer;
+const Buffer: typeof global.Buffer = require("buffer").Buffer;
 import { Log } from "./tools/log";
 import { Crypto } from "./tools/crypto";
 import { StringMap } from "./tools/stringmap";

@@ -7,7 +7,7 @@
  */
 
 // tslint:disable-next-line:no-var-requires
-const Buffer: typeof global.Buffer = require("buffer/").Buffer;
+const Buffer: typeof global.Buffer = require("buffer").Buffer;
 import { ECPair, networks, ECSignature } from "bitcoinjs-lib";
 import { Crypto } from "./tools/crypto";
 

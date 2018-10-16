@@ -9,7 +9,7 @@
 // tslint:disable:no-var-requires
 const md5Func = require("md5");
 const randomBytes = require("randombytes");
-const Buffer: typeof global.Buffer = require("buffer/").Buffer;
+const Buffer: typeof global.Buffer = require("buffer").Buffer;
 import { crypto as btccrypt } from "bitcoinjs-lib";
 
 /** Functions for hashing, and encoding binary data into other formats and back again. */
