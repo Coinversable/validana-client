@@ -1,4 +1,4 @@
-/**
+/*!
  * @license
  * Copyright Coinversable B.V. All Rights Reserved.
  *
@@ -8,17 +8,25 @@
 import * as Raven from "raven-js";
 export declare class Log {
     private static reportErrors;
-    static readonly Debug: number;
-    static readonly Info: number;
-    static readonly Warning: number;
-    static readonly Error: number;
-    static readonly Fatal: number;
-    static readonly None: number;
+    static readonly Debug = 0;
+    static readonly Info = 1;
+    static readonly Warning = 2;
+    static readonly Error = 3;
+    static readonly Fatal = 4;
+    static readonly None = 5;
     static Level: number;
-    static options: Raven.RavenOptions;
-    /** Set this logger to report errors. Will throw an error if there are problems with the url. */
+    static options: Raven.RavenOptions & {
+        tags: {};
+        extra: {};
+    };
+    /**
+     * Set this logger to report errors. Does not work in node.js!
+     * @param dns The sentry dns url.
+     * @param ignoreLocalhost Whether to ignore errors that occure at localhost
+     * @throws if dns is not valid.
+     */
     static setReportErrors(dns: string, ignoreLocalhost: boolean): void;
-    /**  Is this logger registerd to report errors. */
+    /** Is this logger registerd to report errors. Always returns false for node.js environment. */
     static isReportingErrors(): boolean;
     /**
      * Set the user that is logged in.
@@ -51,14 +59,12 @@ export declare class Log {
     static warn(msg: string, error?: Error): void;
     /**
      * Errors which require you to modify the program code, because they should never happen.
-     * You will always be notified if this occurs.
      * @param msg Description of the issue
      * @param error An optional error that may have arisen
      */
     static error(msg: string, error?: Error): void;
     /**
-     * The kind of errors for which you should be waken up at night. Like a live backend going down.
-     * You will always be immediately notified if this occurs.
+     * The kind of errors which require immediate fixing due to their severity.
      * @param msg Description of the issue
      * @param error An optional error that may have arisen
      */

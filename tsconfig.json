@@ -3,27 +3,32 @@
 		"types": [
 			"node"
 		],
+		"typeRoots": [
+			"node_modules/@types"
+		],
 		"target": "es5",
 		"lib": [
-			"dom",
-			"es6"
+			"es2015",
+			"dom"
 		],
 		"module": "commonjs",
+		"downlevelIteration": true,
 		"noImplicitAny": true,
 		"noImplicitThis": true,
 		"noImplicitReturns": true,
 		"removeComments": true,
 		"preserveConstEnums": true,
-		"inlineSourceMap": true,
 		"strictNullChecks": true,
 		"strictPropertyInitialization": true,
 		"noUnusedLocals": true,
 		"noUnusedParameters": true,
 		"noFallthroughCasesInSwitch": true,
+		"forceConsistentCasingInFileNames": true,
 		"outDir": "./dist"
 	},
 	"exclude": [
 		"node_modules",
-		"dist"
+		"dist",
+		"src/__tests__"
 	]
 }

@@ -1,4 +1,4 @@
-/**
+/*!
  * @license
  * Copyright Coinversable B.V. All Rights Reserved.
  *
@@ -17,16 +17,27 @@ export class Log {
 	public static readonly Error = 3;
 	public static readonly Fatal = 4;
 	public static readonly None = 5;
-	public static Level = Log.Error;
-	public static options: Raven.RavenOptions = { tags: { clientVersion: "1.0.0" }, extra: {} };
+	public static Level = Log.Warning;
+	//We do not include package.json for the version here as this will not work in the browser.
+	public static options: Raven.RavenOptions & { tags: {}; extra: {} } = { tags: { clientVersion: "2.0.5" }, extra: {} };
 
-	/** Set this logger to report errors. Will throw an error if there are problems with the url. */
+	/**
+	 * Set this logger to report errors. Does not work in node.js!
+	 * @param dns The sentry dns url.
+	 * @param ignoreLocalhost Whether to ignore errors that occure at localhost
+	 * @throws if dns is not valid.
+	 */
 	public static setReportErrors(dns: string, ignoreLocalhost: boolean): void {
-		Log.reportErrors = true;
-		Raven.config(dns, { autoBreadcrumbs: false, ignoreUrls: ignoreLocalhost ? [/localhost/] : [] }).install();
+		if (typeof window !== "undefined") {
+			Log.reportErrors = true;
+			Raven.config(dns, {
+				autoBreadcrumbs: false,
+				ignoreUrls: ignoreLocalhost ? [/localhost/, /127(?:\.\d{1,3}){3}/, /::1/] : []
+			}).install();
+		}
 	}
 
-	/**  Is this logger registerd to report errors. */
+	/** Is this logger registerd to report errors. Always returns false for node.js environment. */
 	public static isReportingErrors(): boolean {
 		return Log.reportErrors;
 	}
@@ -73,7 +84,10 @@ export class Log {
 		if (Log.Level <= Log.Info) {
 			console.info(msg + (error !== undefined ? `: ${error.stack}` : ""));
 			if (Log.reportErrors) {
+				//Regex any potential private keys away.
+				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
+					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 					Raven.captureBreadcrumb({ level: "info", message: msg, data: { stack: error.stack } });
 				} else {
 					Raven.captureBreadcrumb({ level: "info", message: msg });
@@ -91,7 +105,10 @@ export class Log {
 		if (Log.Level <= Log.Warning) {
 			console.warn(msg + (error !== undefined ? `: ${error.stack}` : ""));
 			if (Log.reportErrors) {
+				//Regex any potential private keys away.
+				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
+					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 					Raven.captureBreadcrumb({ level: "warning", message: msg, data: { stack: error.stack } });
 				} else {
 					Raven.captureBreadcrumb({ level: "warning", message: msg });
@@ -102,7 +119,6 @@ export class Log {
 
 	/**
 	 * Errors which require you to modify the program code, because they should never happen.
-	 * You will always be notified if this occurs.
 	 * @param msg Description of the issue
 	 * @param error An optional error that may have arisen
 	 */
@@ -110,7 +126,10 @@ export class Log {
 		if (Log.Level <= Log.Error) {
 			console.error(msg + (error !== undefined ? `: ${error.stack}` : ""));
 			if (Log.reportErrors) {
+				//Regex any potential private keys away.
+				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
+					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 					Raven.captureException(error, { level: "error", extra: { message: msg } });
 				} else {
 					Raven.captureMessage(msg, { level: "error" });
@@ -120,8 +139,7 @@ export class Log {
 	}
 
 	/**
-	 * The kind of errors for which you should be waken up at night. Like a live backend going down.
-	 * You will always be immediately notified if this occurs.
+	 * The kind of errors which require immediate fixing due to their severity.
 	 * @param msg Description of the issue
 	 * @param error An optional error that may have arisen
 	 */
@@ -129,7 +147,10 @@ export class Log {
 		if (Log.Level <= Log.Fatal) {
 			console.error(msg + (error !== undefined ? `: ${error.stack}` : ""));
 			if (Log.reportErrors) {
+				//Regex any potential private keys away.
+				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
+					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 					//Typecast because of buggy raven js types
 					Raven.captureException(error, { level: "fatal" as "critical", extra: { message: msg } });
 				} else {

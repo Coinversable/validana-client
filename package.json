@@ -1,6 +1,6 @@
 {
 	"name": "@coinversable/validana-client",
-	"version": "1.0.0",
+	"version": "2.0.5",
 	"description": "The client for Validana to connect to the Server.",
 	"author": "Coinversable BV",
 	"homepage": "https://validana.io/",
@@ -9,20 +9,8 @@
 		"type": "git",
 		"url": "https://github.com/Coinversable/validana-client.git"
 	},
-	"main": "dist/bundles/validana-client.umd.js",
-	"typings": "dist/validana-client.d.ts",
-	"ngPackage": {
-		"lib": {
-			"entryFile": "src/index.ts",
-			"umdModuleIds": {
-				"raven-js": "ravenJs",
-				"bitcoinjs-lib": "bitcoinjsLib"
-			}
-		},
-		"whitelistedNonPeerDependencies": [
-			"."
-		]
-	},
+	"main": "dist/index.js",
+	"typings": "dist/index.d.ts",
 	"keywords": [
 		"coinversable",
 		"validana",
@@ -31,30 +19,51 @@
 		"frontend"
 	],
 	"scripts": {
-		"tslint": "tslint --project tsconfig.json -c tslint.json src/**/*.ts",
-		"build": "ng-packagr -p package.json"
+		"tslint": "tslint --project tsconfig.json -c tslint.json && tslint --project src/__tests__/tsconfig.json -c tslint.json",
+		"keys": "node --no-warnings -e \"const PK = require('./dist/key.js').PrivateKey; const key = process.argv[1] ? PK.fromWIF(process.argv[1]) : PK.generate(); console.log(key.toWIF(), key.publicKey.toString('hex'), key.getAddress())\"",
+		"keysjson": "node --no-warnings -pe \"const PK = require('./dist/key.js').PrivateKey; const key = process.argv[1] ? PK.fromWIF(process.argv[1]) : PK.generate(); JSON.stringify({privateKey: key.toWIF(), publicKey: key.publicKey.toString('hex'), address: key.getAddress()})\"",
+		"build": "tsc && tsc --declaration true --emitDeclarationOnly true --removeComments false && browserify src/index.ts --plugin=tsify --standalone Validana | uglifyjs -c -o dist/bundle.js",
+		"test": "tsc -p src/__tests__/tsconfig.json && nyc jasmine dist/__tests__/**/*.js"
 	},
 	"files": [
-		"dist"
+		"dist",
+		"!dist/bundle.js",
+		"!dist/__tests__"
 	],
 	"dependencies": {
-		"@types/bitcoinjs-lib": "^3.3.3",
-		"bitcoinjs-lib": "^3.3.2",
+		"@types/ecurve": "^1.0.0",
+		"bigi": "^1.4.2",
 		"buffer": "^5.1.0",
-		"global": "^4.3.2",
-		"md5": "^2.2.1",
-		"randombytes": "^2.0.6",
-		"raven-js": "^3.24.0"
+		"create-hash": "^1.2.0",
+		"ecurve": "^1.0.6",
+		"events": "^3.0.0",
+		"raven-js": "^3.24.0",
+		"ws": "^7.0.0"
 	},
 	"devDependencies": {
-		"@angular/compiler": "^5.2.9",
-		"@angular/compiler-cli": "^5.2.9",
-		"@angular/core": "^5.2.9",
-		"ng-packagr": "^2.4.5",
-		"tsickle": "^0.27.2",
-		"typescript": "^2.8.3"
+		"@types/jasmine": "*",
+		"browserify": "^16.2.3",
+		"tsify": "^4.0.1",
+		"tslint": "^5.20.1",
+		"typescript": "^3.2.4",
+		"uglify-js": "^3.6.9"
 	},
-	"module": "dist/esm5/validana-client.js",
-	"es2015": "dist/esm2015/validana-client.js",
-	"metadata": "dist/validana-client.metadata.json"
+	"nyc": {
+		"sourceMap": false,
+		"check-coverage": false,
+		"all": true,
+		"include": [
+			"dist/**/*.js"
+		],
+		"exclude": [
+			"dist/__tests__/**/*.js",
+			"dist/bundle.js"
+		],
+		"reporter": [
+			"html",
+			"text-summary"
+		],
+		"temp-dir": "dist/__tests__/.nyc_output",
+		"report-dir": "dist/__tests__/.coverage"
+	}
 }

@@ -23,14 +23,12 @@ All Validana packages and smart contracts are entirely written in Typescript / J
 
 The Validana Client (This package)
 ==================================
-The Validana Client repository contains components needed for interacting with the Validana Server through a WebSocket. It is not meant to be run standalone, but should instead be implemented in an existing (web) user interface. For your convenience the 'dist' folder contains the latest build following the [Angular Package format](https://docs.google.com/document/d/1CZC2rcpxffTDfRDs6p1cfbmKNLA6x5O-NtkJglDaBVs/preview). This enables you to directly include this git repository using npm or yarn.
+The Validana Client repository contains components needed for interacting with the Validana Server through a WebSocket. It is not meant to be run standalone, but for convenience a html file is included to demo basic functions. It can either be installed as an npm package (dependency: "validana-client":"git+ssh://git@github.com:Coinversable/validana-client.git", also suitable for Node.js) or bundle.js can be included as script on the webpage, in which case everything will be available under window.Validana. The Validana Client assumes an es6 compatible environment. In case es5 needs to be supported polyfills should be used, however transpiling is not needed.
 
 Setup Development environment
 -----------------------------
 1. Install Node.js if you want to extend it as a server application. (https://nodejs.org/en/download/)
-2. The validana client uses websockets, please make sure to correctly define global.WebSocket
-3. Install yarn (https://yarnpkg.com/en/docs/install)
-4. Run `yarn global add typescript tslint`
+2. Install yarn (https://yarnpkg.com/en/docs/install)
 
 Setup Validana Client
 ---------------------

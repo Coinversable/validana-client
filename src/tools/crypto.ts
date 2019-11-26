@@ -1,4 +1,4 @@
-/**
+/*!
  * @license
  * Copyright Coinversable B.V. All Rights Reserved.
  *
@@ -7,10 +7,11 @@
  */
 
 // tslint:disable:no-var-requires
-const md5Func = require("md5");
-const randomBytes = require("randombytes");
 const Buffer: typeof global.Buffer = require("buffer").Buffer;
-import { crypto as btccrypt } from "bitcoinjs-lib";
+const randomBytes = typeof window === "undefined" ? require("crypto").randomBytes :
+	window.crypto !== undefined ? (size: number) => window.crypto.getRandomValues(Buffer.alloc(size)) :
+		(size: number) => (window as any).msCrypto.getRandomValues(Buffer.alloc(size));
+const createHash = typeof window === "undefined" ? require("crypto").createHash : require("create-hash");
 
 /** Functions for hashing, and encoding binary data into other formats and back again. */
 export class Crypto {
@@ -18,37 +19,41 @@ export class Crypto {
 	private static readonly base58chars = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
 	//And a map of characters to position in that string.
 	private static readonly base58map: { [key: string]: number } = Object.keys(Crypto.base58chars).reduce(
-		// @dynamic Make the angular compiler stop complaining
-		(obj: any, key) => (obj[Crypto.base58chars[parseInt(key, 10)]] = parseInt(key, 10), obj), {});
+		(obj: { [key: string]: number }, key) => (obj[Crypto.base58chars[Number.parseInt(key, 10)]] = Number.parseInt(key, 10), obj), {});
 
 	/** Calculate hash160 (ripemd160 of sha256) */
-	public static hash160(buffer: Buffer): Buffer {
-		return btccrypt.hash160(buffer);
+	public static hash160(buffer: Buffer | string): Buffer {
+		return Crypto.ripemd160(Crypto.sha256(buffer));
 	}
 
 	/** Calculate hash256 (double sha256) */
-	public static hash256(buffer: Buffer): Buffer {
-		return btccrypt.hash256(buffer);
+	public static hash256(buffer: Buffer | string): Buffer {
+		return Crypto.sha256(Crypto.sha256(buffer));
 	}
 
 	/** Calculate ripemd160 */
-	public static ripemd160(buffer: Buffer): Buffer {
-		return btccrypt.ripemd160(buffer);
+	public static ripemd160(buffer: Buffer | string): Buffer {
+		return createHash("ripemd160").update(buffer).digest();
 	}
 
-	/** Calculate sha1 (Note that sha1 is unsafe nowadays!)  */
-	public static sha1(buffer: Buffer): Buffer {
-		return btccrypt.sha1(buffer);
+	/** Calculate sha1 (Note that sha1 is unsafe nowadays!) */
+	public static sha1(buffer: Buffer | string): Buffer {
+		return createHash("sha1").update(buffer).digest();
 	}
 
 	/** Calculate sha256 (Note that sha256 is vulnerable to length extension attacks, use hash256 instead.) */
-	public static sha256(buffer: Buffer): Buffer {
-		return btccrypt.sha256(buffer);
+	public static sha256(buffer: Buffer | string): Buffer {
+		return createHash("sha256").update(buffer).digest();
 	}
 
-	/** Calculate md5 (Note that md5 is unsafe nowadays!)  */
-	public static md5(buffer: Buffer): Buffer {
-		return Buffer.from(md5Func(buffer), "hex");
+	/** Calculate sha512 (Note that sha512 is vulnerable to length extension attacks.) */
+	public static sha512(buffer: Buffer | string): Buffer {
+		return createHash("sha512").update(buffer).digest();
+	}
+
+	/** Calculate md5 (Note that md5 is unsafe nowadays!) */
+	public static md5(buffer: Buffer | string): Buffer {
+		return createHash("md5").update(buffer).digest();
 	}
 
 	/**
@@ -56,7 +61,7 @@ export class Crypto {
 	 * @param text The text to test.
 	 */
 	public static isHex(text: string): boolean {
-		return text.search(/^[0-9A-Fa-f]*$/) === 0 && (text.length & 0x1) === 0;
+		return text.search(/^[0-9A-Fa-f]*$/) === 0 && text.length % 2 === 0;
 	}
 
 	/** Turn a hex encoded string into binary data. */
@@ -77,7 +82,10 @@ export class Crypto {
 		return text.search(/^[1-9A-HJ-NP-Za-km-z]*$/) === 0;
 	}
 
-	/** Turn a base58 encoded string into binary data. */
+	/**
+	 * Turn a base58 encoded string into binary data.
+	 * @throws if one of the characters is not base58
+	 */
 	public static base58ToBinary(base58: string): Buffer {
 		if (base58.length === 0) {
 			return Buffer.alloc(0);
@@ -89,9 +97,9 @@ export class Crypto {
 				throw new Error("Invalid character.");
 			}
 
-			for (let j = 0; j < bytes.length; j++) {
-				value += bytes[j] * 58;
-				bytes[j] = value & 0xff;
+			for (let i = 0; i < bytes.length; i++) {
+				value += bytes[i] * 58;
+				bytes[i] = value & 0xff;
 				value >>= 8;
 			}
 
@@ -102,7 +110,7 @@ export class Crypto {
 		}
 
 		// deal with leading zeros
-		for (let k = 0; base58[k] === Crypto.base58chars[0] && k < base58.length - 1; k++) {
+		for (let i = 0; base58[i] === Crypto.base58chars[0] && i < base58.length - 1; i++) {
 			bytes.push(0);
 		}
 
@@ -148,7 +156,7 @@ export class Crypto {
 	 * @param text The text to test.
 	 */
 	public static isBase64(text: string): boolean {
-		return text.search(/^[\+\/-9A-Za-z]*={0,2}$/) === 0 && (text.length & 0x3) === 0;
+		return text.search(/^[\+\/-9A-Za-z]*={0,2}$/) === 0 && text.length % 4 === 0;
 	}
 
 	/** Turn a base64 encoded string into binary data. */
@@ -170,11 +178,35 @@ export class Crypto {
 	}
 
 	/**
+	 * Check if a string is valid base64 url code.
+	 * @param text The text to test.
+	 */
+	public static isBase64Url(text: string): boolean {
+		return text.search(/^[\-_0-9A-Za-z]*$/) === 0 && text.length % 4 !== 1;
+	}
+
+	/** Turn a base64 url encoded string into binary data. */
+	public static base64UrlToBinary(base64url: string): Buffer {
+		const pad = base64url.length % 4;
+		if (pad === 3) {
+			base64url = base64url + "=";
+		} else if (pad === 2) {
+			base64url = base64url + "==";
+		}
+		return Buffer.from(base64url.replace(/-/g, "+").replace(/_/g, "/"), "base64");
+	}
+
+	/** Turn a base64 encoded string into a base64 url encoded string. */
+	public static binaryToBase64Url(binary: Buffer): string {
+		return binary.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+	}
+
+	/**
 	 * Turn a text into for postgres valid utf8 text by removing invalid characters.
 	 * @param text The text to transform.
 	 */
 	public static makeUtf8Postgres(text: string): string {
-		return text.replace("\0", "");
+		return text.replace(/\0/g, "");
 	}
 
 	/** Turn an utf8 string into binary data. */
@@ -187,43 +219,64 @@ export class Crypto {
 		return binary.toString("utf8");
 	}
 
-	/**  Turn a javascript number into binary data (Only valid for numbers 0-255, will throw an error otherwise). */
+	/**
+	 * Turn a javascript number into binary data.
+	 * @throws if unsingedInt is not in the range 0-255
+	 */
 	public static uInt8ToBinary(unsignedInt: number): Buffer {
 		const buffer = Buffer.alloc(1);
 		buffer.writeUInt8(unsignedInt, 0);
 		return buffer;
 	}
 
-	/** Turn 1 byte of binary data into a javascript number. Will throw an error if it cannot be converted. */
+	/**
+	 * Turn 1 byte of binary data into a javascript number.
+	 * @throws if the buffer is <1 byte
+	 */
 	public static binaryToUInt8(buffer: Buffer): number {
 		return buffer.readUInt8(0);
 	}
 
-	/** Turn a javascript number into binary data (Only valid for numbers 0-(2^16-1), will throw an error otherwise). */
+	/**
+	 * Turn a javascript number into binary data.
+	 * @throws if unsingedInt is not in the range 0-(2^16-1)
+	 */
 	public static uInt16ToBinary(unsignedInt: number): Buffer {
 		const buffer = Buffer.alloc(2);
 		buffer.writeUInt16LE(unsignedInt, 0);
 		return buffer;
 	}
 
-	/** Turn 2 bytes of binary data into a javascript number. Will throw an error if it cannot be converted. */
+	/**
+	 * Turn 2 bytes of binary data into a javascript number.
+	 * @throws if the buffer is <2 bytes
+	 */
 	public static binaryToUInt16(buffer: Buffer): number {
 		return buffer.readUInt16LE(0);
 	}
 
-	/** Turn a javascript number into binary data (Only valid for numbers 0-(2^32-1), will throw an error otherwise). */
+	/**
+	 * Turn a javascript number into binary data.
+	 * @throws if unsingedInt is not in the range 0-(2^32-1)
+	 */
 	public static uInt32ToBinary(unsignedInt: number): Buffer {
 		const buffer = Buffer.alloc(4);
 		buffer.writeUInt32LE(unsignedInt, 0);
 		return buffer;
 	}
 
-	/** Turn 4 bytes of binary data into a javascript number. Will throw an error if it cannot be converted. */
+	/**
+	 * Turn 4 bytes of binary data into a javascript number.
+	 * @throws if the buffer is <4 bytes
+	 */
 	public static binaryToUInt32(buffer: Buffer): number {
 		return buffer.readUInt32LE(0);
 	}
 
-	/** Turn a javascript number into binary data (Only valid for numbers 0-(2^53-1), will throw an error otherwise). */
+	/**
+	 * Turn a javascript number into binary data.
+	 * @throws if unsingedInt is not in the range 0-(2^53-1)
+	 */
 	public static uLongToBinary(ulong: number): Buffer {
 		//A normal long is 64 bits, not 53, but javascript only allows 53 bits accuracy.
 		if (!Number.isSafeInteger(ulong) || ulong < 0) {
@@ -235,7 +288,10 @@ export class Crypto {
 		return buffer;
 	}
 
-	/** Turn binary data into a javascript number. Will throw an error if it cannot be converted. */
+	/**
+	 * Turn binary data into a javascript number.
+	 * @throws if the buffer is <8 bytes or the resulting number is not in the range 0-(2^53-1)
+	 */
 	public static binaryToULong(binary: Buffer): number {
 		const result = binary.readUInt32LE(0) + binary.readUInt32LE(4) * 4294967296;
 		if (!Number.isSafeInteger(result)) {
@@ -253,10 +309,18 @@ export class Crypto {
 			//Use a less random source, which is good enough as security doesn't depend on it.
 			//We use use a better random to ensure there are no collisions.
 			let result: string = "";
-			for (let i = 0; i < 4; i++) {
-				result += (Math.random() * 16).toString(16).slice(2, 10);
+			for (let i = 0; i < 32; i++) {
+				result += (Math.random() * 16 | 0).toString(16);
 			}
 			return Crypto.hexToBinary(result);
 		}
+	}
+
+	/**
+	 * Generate secure random data.
+	 * @throws if there is no proper source of random available.
+	 */
+	public static secureRandom(size: number): Buffer {
+		return randomBytes(size);
 	}
 }

@@ -1,4 +1,4 @@
-/**
+/*!
  * @license
  * Copyright Coinversable B.V. All Rights Reserved.
  *
@@ -14,6 +14,7 @@ export interface RequestMessage {
 }
 
 export interface ResponseOrPushMessage {
+	status: number;
 	error?: string;
 	data?: object;
 	id?: string;
@@ -21,13 +22,19 @@ export interface ResponseOrPushMessage {
 }
 
 export interface ProcessRequest {
-	base64tx: string; //The actual transaction (in base64 format)
-	createTs?: number; //Optional info about when it was created
+	/** The transaction (in base64 format, same as transaction inside a block) */
+	base64tx: string;
+	/** Optional info about when it was created. */
+	createTs?: number;
 }
 
 export interface TxRequest {
-	txId: string; //transactionId (hex)
-	push?: boolean; //If the transaction does not exist, do you want to receive a push message once it does? (websocket only)
+	/** Transaction id (hex) */
+	txId: string;
+	/** Return what is available. Send the rest as a push message when they are? (websocket only) */
+	push?: boolean;
+	/** Do not return till everything is available? If true 'push' will be ignored. */
+	wait?: boolean;
 }
 
 export interface Contract {
@@ -38,11 +45,12 @@ export interface Contract {
 	template: {
 		[fieldType: string]: FieldType;
 	};
+	validanaVersion: number;
 }
 
 export interface FieldType {
 	type: string; //Field Type
-	description: string; //Field suggested description
+	desc: string; //Field suggested description
 	name: string; //Field suggested name
 }
 
@@ -50,12 +58,12 @@ export interface TxResponseOrPush {
 	//Transaction info
 	id: string;
 	contractHash: string;
-	payload: string;
+	payload: any;
 	publicKey: string;
 	signature: string;
-	status: string;
+	status: "new" | "invalid" | "accepted" | "rejected";
 	createTs?: number | null;
-	//Processed transaction info (if valid)
+	//Processed transaction info (if accepted and possibly if rejected)
 	sender: string | null;
 	contractType: string | null;
 	message: string | null;
@@ -64,6 +72,4 @@ export interface TxResponseOrPush {
 	processedTs: number | null;
 	//Optional info once processed
 	receiver: string | null;
-	extra1: string | null;
-	extra2: string | null;
 }

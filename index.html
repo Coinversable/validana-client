@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<meta name="format-detection" content="telephone=no">
+</head>
+
+<body>
+	<button type="button" onclick="window.location='/key.html'">Generate Key</button>
+	<div id="all">
+		<div>
+			<p style="height:3px">Server Url:</p>
+			<input type="text" id="serverUrl" size="100" value="ws://localhost:8080/api/v1/">
+		</div>
+		<div>
+			<p style="height:3px">Sign Prefix:</p>
+			<input type="text" id="prefix" size="100" value="test">
+		</div>
+		<button type="button" onclick="connect()">Connect</button>
+	</div>
+	<script src="dist/bundle.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		const cContractHash = "0000000000000000000000000000000000000000000000000000000000000000";
+		const dContractHash = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"
+		const searchParams = new URL(window.location).searchParams;
+		if (searchParams.has("url")) {
+			document.getElementById("serverUrl").value = searchParams.get("url");
+		}
+		if (searchParams.has("prefix")) {
+			document.getElementById("prefix").value = searchParams.get("prefix");
+		}
+
+		let contracts = [];
+		//Avoid XSS
+		function escapeAttr(str) {
+			return str.replace(/"/g, "&quot;");
+		}
+		function escapeHTML(str) {
+			return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt")
+				.replace(/"/g, "&quot;").replace(/'/g, "&#x27;").replace(/\//g, "&#x2F;");
+		}
+		async function connect() {
+			//Connect
+			const url = document.getElementById("serverUrl").value;
+			const prefix = document.getElementById("prefix").value;
+			await Validana.Client.get().init(prefix, url);
+			//Get all existing contracts and add create/delete contracts
+			contracts = await Validana.Client.get().query("contracts");
+			contracts.unshift({
+				type: "Delete Contract",
+				version: "",
+				description: "Delete a contract.",
+				hash: dContractHash,
+				template: {
+					hash: { type: "hash", desc: "Contract to delete (hash)", name: "hash" }
+				},
+				validanaVersion: 2
+			});
+			contracts.unshift({
+				type: "Create Contract",
+				version: "",
+				description: "Create a new contract.",
+				hash: cContractHash,
+				template: {
+					type: { type: "str", desc: "Contract Type", name: "type" },
+					version: { type: "str", desc: "Contract Version", name: "version" },
+					description: { type: "str", desc: "Contract Description", name: "description" },
+					template: { type: "json", desc: "Contract Template", name: "template" },
+					init: { type: "base64", desc: "Init Code (base64)", name: "init" },
+					code: { type: "base64", desc: "Contract Code (base64)", name: "code" },
+					validanaVersion: { type: "uint?", desc: "Validana Version", name: "validana version" }
+				},
+				validanaVersion: 2
+			});
+			//Delete old buttons and create new ones.
+			document.getElementById("all").innerHTML =
+				`<p style="height:3px">Private Key (WIF):</p>
+				<input type="password" id="privateKey" size="100" value="">
+				<p style="height:3px">Contract:</p>
+				<input type="text" id="contract" oninput="selectContract()" size="100" value="Create Contract" list="list">
+				<datalist id="list">
+					${contracts.map((c) => `<option value="${escapeAttr(c.type + " " + c.version).trim()}"></option>`).join("")}
+				</datalist>
+				<p>You can use | as seperator between values when using arrays.</p>
+				<div id="contractDiv"></div>
+				<button id="sendButton" type="button" onclick="send()">Send</button>
+				<p id="result"></p>`;
+			selectContract();
+		}
+		async function selectContract() {
+			document.getElementById("result").textContent = "";
+			//Find out what contract the user selected.
+			const currentContractName = document.getElementById("contract").value;
+			let currentContract;
+			for (const contract of contracts) {
+				if (currentContractName === (contract.type + " " + contract.version).trim()) {
+					currentContract = contract;
+					break;
+				}
+			}
+			if (currentContract === undefined) {
+				//If contract does not exist.
+				document.getElementById("contractDiv").innerHTML = "";
+			} else {
+				//If contract exists create input fields.
+				let newHtml = `<p>${escapeHTML(currentContract.description)}</p>`;
+				for (const key of Object.keys(currentContract.template)) {
+					const tempKey = currentContract.template[key];
+					newHtml += `<p style="height:3px">${escapeHTML(tempKey.name)}:</p>`;
+					if (currentContract.hash === cContractHash && key === "validanaVersion") {
+						//Use default value, as this is what you properly want.
+						newHtml += `<input type="number" id="_validanaVersion" size="100" ` +
+							`placeholder="${escapeAttr(tempKey.desc)}" value="2">`;
+					} else if (currentContract.hash === cContractHash && (key === "init" || key === "code")) {
+						//Base64 encode if needed
+						newHtml += `<textarea id="_${escapeAttr(key)}" cols="100" rows="1" style="overflow-x:hidden;"
+							placeholder="${escapeAttr(tempKey.desc)}" 
+							oninput="const e=document.getElementById('_${escapeAttr(key)}');
+							if (!Validana.Crypto.isBase64(e.value)) {
+								e.value = Validana.Crypto.utf8ToBinary(e.value).toString('base64')
+							}"></textarea>`;
+					} else if (currentContract.hash === dContractHash) {
+						//Replace contract name with hash to help user
+						newHtml += `<input type="text" id="_hash" size="100" ` +
+							`placeholder="${escapeAttr(tempKey.desc)}" list="list" 
+							oninput="const e=document.getElementById('_${escapeAttr(key)}');
+							if (!Validana.Crypto.isHex(e.value) || e.value.length !== 64) {
+								for (const contract of contracts) {
+									if (e.value === (contract.type + ' ' + contract.version).trim()) {
+										e.value = contract.hash;
+										break;	
+									}
+								}
+							}">`
+					} else {
+						let type = "text";
+						if (tempKey.type === "bool" || tempKey.type === "bool?") {
+							type = "checkbox";
+						}
+						if (tempKey.type === "int" || tempKey.type === "uint" || tempKey.type === "float"
+							|| tempKey.type === "int?" || tempKey.type === "uint?" || tempKey.type === "float?") {
+							type = "number";
+						}
+						newHtml += `<input type="${type}" id="_${escapeAttr(key)}" size="100" placeholder="${escapeAttr(tempKey.desc)}">`;
+					}
+				}
+				document.getElementById("contractDiv").innerHTML = newHtml;
+			}
+		}
+		async function send() {
+			//Find out what contract the user selected.
+			const currentContractName = document.getElementById("contract").value;
+			let currentContract;
+			for (const contract of contracts) {
+				if (currentContractName === (contract.type + " " + contract.version).trim()) {
+					currentContract = contract;
+					break;
+				}
+			}
+			if (currentContract === undefined) {
+				document.getElementById("result").value = "No contract selected.";
+			} else {
+				try {
+					//Disable the button to avoid user clicking multiple times while it is working
+					document.getElementById("result").textContent = "Processing...";
+					document.getElementById("result").style = ""
+					document.getElementById("sendButton").disabled = true;
+					const privateKey = Validana.PrivateKey.fromWIF(document.getElementById("privateKey").value);
+					const transactionId = Validana.Crypto.id();
+					const contractHash = Validana.Crypto.hexToBinary(currentContract.hash);
+					console.log(currentContract);
+					const payload = {}; //Simple key-value pair with a key for every key in the template and value of what is defined in the template.
+					for (const elem of document.getElementById("contractDiv").childNodes) {
+						if (elem.nodeName === "INPUT" || elem.nodeName === "TEXTAREA") {
+							const id = elem.id.slice(1);
+							const type = currentContract.template[id].type;
+							//Give every payload key the right type and value (v1 does not support json or ? types)
+							if (type === "bool" || type === "bool?" && currentContract.validanaVersion >= 2) {
+								payload[id] = elem.checked;
+							} else if (type === "boolArray") {
+								payload[id] = elem.value === "" ? [] : elem.value.split("|").map((e) => e.match(/t(rue)?|y(es)?/i) !== null);
+							} else if (type === "int" || type === "uint" || type === "float") {
+								payload[id] = Number(elem.value);
+							} else if ((type === "int?" || type === "uint?" || type === "float?") && currentContract.validanaVersion >= 2) {
+								if (elem.value !== "") {
+									payload[id] = Number(elem.value);
+								}
+							} else if (type === "intArray" || type === "uintArray" || type === "floatArray") {
+								payload[id] = elem.value === "" ? [] : elem.value.split("|").map(Number);
+							} else if (type === "json" && currentContract.validanaVersion >= 2) {
+								payload[id] = JSON.parse(elem.value);
+							} else if (type === "json?" && currentContract.validanaVersion >= 2) {
+								if (elem.value !== "") {
+									payload[id] = JSON.parse(elem.value);
+								}
+							} else if (type === "jsonArray" && currentContract.validanaVersion >= 2) {
+								payload[id] = elem.value === "" ? [] : elem.value.split("|").map((e) => JSON.parse(e));
+							} else if (type.endsWith("?") && currentContract.validanaVersion >= 2) {
+								if (elem.value !== "") {
+									payload[id] = elem.value;
+								}
+							} else if (type.endsWith("Array")) {
+								payload[id] = elem.value === "" ? [] : elem.value.split("|");
+							} else {
+								payload[id] = elem.value;
+							}
+						}
+					}
+					console.log(payload, currentContract.validanaVersion);
+					if (currentContract.hash === cContractHash) {
+						if (payload.validanaVersion === 1) {
+							delete payload.validanaVersion; //Ensure backwards compatibility
+						}
+					}
+
+					//Create transaction and await result.
+					await Validana.Client.get().signAndSend(privateKey, transactionId, contractHash, payload, 0, true);
+					const result = await Validana.Client.get().getProcessedTx(transactionId);
+					document.getElementById("result").textContent = result.status + ": " + result.message;
+					document.getElementById("result").style = `background-color:${result.status === "accepted" ? "green" : "red"}`;
+					document.getElementById("sendButton").disabled = false;
+				} catch (error) {
+					document.getElementById("result").textContent = error.toString();
+					document.getElementById("result").style = "background-color:red;"
+					document.getElementById("sendButton").disabled = false;
+				}
+			}
+		}
+	</script>
+</body>
+
+</html>

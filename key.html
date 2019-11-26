@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+</head>
+
+<body>
+	<p><b>Note: Make sure to save the key in a safe location. It cannot be recovered if lost.</b></p>
+	<button type="button" onclick="document.getElementById('privateKey').value = Validana.PrivateKey.generate().toWIF(); updatePriv();">Generate random key</button>
+	<p style="height:3px">Private key (WIF):</p>
+	<input type="text" id="privateKey" oninput="updatePriv()" size="100" value="Generating...">
+	<p style="height:3px">Public key:</p>
+	<input type="text" id="publicKey" oninput="updatePub()" size="100" value="Generating...">
+	<p style="height:3px">Address:</p>
+	<input type="text" id="address" oninput="updateAddress()" size="100" value="Generating...">
+	<script src="dist/bundle.js" type="text/javascript"></script>
+	<script type="text/javascript">
+		let isUpdating = false;
+	    function updatePriv() {
+			if (!isUpdating) {
+				isUpdating = true;
+				document.getElementById("publicKey").style = "";
+				document.getElementById("address").style = "";
+				try {
+					const privateKey = Validana.PrivateKey.fromWIF(document.getElementById("privateKey").value);
+					document.getElementById("privateKey").style = "";
+					document.getElementById("publicKey").value = privateKey.publicKey.toString("hex");
+					document.getElementById("address").value = privateKey.getAddress();
+				} catch (e) {
+					document.getElementById("privateKey").style = "background-color: #ff4444;";
+					document.getElementById("publicKey").value = "";
+					document.getElementById("address").value = "";
+				}
+				isUpdating = false;
+			}
+		}
+		function updatePub() {
+			if (!isUpdating) {
+				isUpdating = true;
+				document.getElementById("privateKey").value = "";
+				document.getElementById("privateKey").style = "";
+				document.getElementById("address").style = "";
+				try {
+					const publicKey = new Validana.PublicKey(Validana.Crypto.hexToBinary(document.getElementById("publicKey").value));
+					document.getElementById("publicKey").style = "";
+					document.getElementById("address").value = publicKey.getAddress();
+				} catch (e) {
+					document.getElementById("publicKey").style = "background-color: #ff4444;";
+					document.getElementById("address").value = "";
+				}
+				isUpdating = false;
+			}
+		}
+		function updateAddress() {
+			if (!isUpdating) {
+				isUpdating = true;
+				document.getElementById("privateKey").value = "";
+				document.getElementById("publicKey").value = "";
+				document.getElementById("privateKey").style = "";
+				document.getElementById("publicKey").style = "";
+				if (Validana.PublicKey.isValidAddress(document.getElementById("address").value)) {
+					document.getElementById("address").style = "";
+				} else {
+					document.getElementById("address").style = "background-color: #ff4444;";
+				}
+				isUpdating = false;
+			}
+		}
+		document.getElementById('privateKey').value = Validana.PrivateKey.generate().toWIF();
+		updatePriv();
+	</script>
+</body>
+</html>

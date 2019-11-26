@@ -1,4 +1,4 @@
-/**
+/*!
  * @license
  * Copyright Coinversable B.V. All Rights Reserved.
  *
@@ -9,28 +9,29 @@ import { VObserver } from "./observer";
 /**
  * Classical Observable class
  * Generics are used to make it clear what data can be forwarded to observers.
+ * @deprecated Use an event emitter.
  */
 export declare class VObservable<T> {
+    private static deprecatedWarning;
     private observers;
+    private callbacks;
     private changed;
+    constructor();
     /**
-     * Add observer to the list of observers
+     * Add observer to the list of observers.
      * @param o The observer to add
      */
-    addObserver(o: VObserver<T>): void;
+    addObserver(o: VObserver<T> | ((arg?: T) => void)): void;
     /**
      * Check if this has a certain observer.
      * @param o the observer to check
      */
     hasObserver(o: VObserver<T>): boolean;
-    /**
-     * Indicates that the object is no longer changed
-     */
+    /** Indicates that the object is no longer changed */
     protected clearChanged(): void;
-    /**
-     * Return the number of active observers
-     */
+    /** Return the number of active observers */
     countObservers(): number;
+    countCallbacks(): number;
     /**
      * Delete given observer
      * @param o The observer to delete

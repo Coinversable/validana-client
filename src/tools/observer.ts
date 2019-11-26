@@ -1,4 +1,4 @@
-/**
+/*!
  * @license
  * Copyright Coinversable B.V. All Rights Reserved.
  *
@@ -11,6 +11,7 @@ import { VObservable } from "./observable";
 /**
  * Classical Observer interface.
  * Generics are used to make it clear what data can be received from the update method.
+ * @deprecated
  */
 export interface VObserver<T> {
 
@@ -19,5 +20,5 @@ export interface VObserver<T> {
 	 * @param o The observable object that was changed
 	 * @param arg Optional additional arguments passed with change
 	 */
-	update(o: VObservable<T>, arg?: T): void;
+	update(o: VObservable<T> | any, arg?: T): void;
 }

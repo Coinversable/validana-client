@@ -1,4 +1,4 @@
-/**
+/*!
  * @license
  * Copyright Coinversable B.V. All Rights Reserved.
  *
@@ -7,14 +7,16 @@
  */
 
 /**
+ * @deprecated Use a general polyfill instead.
  * This class saves key-value pairs.
- * Similar to the ES6 Map, but compatile with older browsers.
+ * Similar to the ES6 Map, but compatible with older browsers.
  */
 export class StringMap<T> {
 	private map: { [key: string]: T } = {};
 
 	/**
 	 * Add all elements from an object, overwriting current values if @param overwrite is true (default).
+	 * @deprecated Use a general polyfill instead.
 	 * @param object The array of key-value pairs to add from.
 	 * @param overwrite Should intersecting elements be overwritten or not.
 	 */
@@ -29,6 +31,7 @@ export class StringMap<T> {
 
 	/**
 	 * Add all elements from another map, overwriting current values if @param overwrite is true (default).
+	 * @deprecated Use a general polyfill instead.
 	 * @param map The map to add from.
 	 * @param overwrite Should intersecting elements be overwritten or not.
 	 */
@@ -43,6 +46,7 @@ export class StringMap<T> {
 
 	/**
 	 * Get the value associated with a certain key (or undefined if it does not exist).
+	 * @deprecated Use a general polyfill instead.
 	 * @param key the key
 	 */
 	public get(key: string): T { //https://github.com/Microsoft/TypeScript/issues/9619 Add undefined if there is a solution
@@ -51,6 +55,7 @@ export class StringMap<T> {
 
 	/**
 	 * Set the value associated with a certain key.
+	 * @deprecated Use a general polyfill instead.
 	 * @param key the key
 	 * @param value the value
 	 */
@@ -61,6 +66,7 @@ export class StringMap<T> {
 
 	/**
 	 * Check if the Map contains a certain key-value pair.
+	 * @deprecated Use a general polyfill instead.
 	 * @param key the key of the key-value pair
 	 */
 	public has(key: string): boolean {
@@ -69,6 +75,7 @@ export class StringMap<T> {
 
 	/**
 	 * Delete a key-value pair.
+	 * @deprecated Use a general polyfill instead.
 	 * @param key the key
 	 */
 	public delete(this: StringMap<T>, key: string): StringMap<T> {
@@ -76,12 +83,18 @@ export class StringMap<T> {
 		return this;
 	}
 
-	/** Get a list of all keys in this Map. */
+	/**
+	 * Get a list of all keys in this Map.
+	 * @deprecated Use a general polyfill instead.
+	 */
 	public keys(): string[] {
 		return Object.keys(this.map);
 	}
 
-	/** Get a list of all values in this Map. */
+	/**
+	 * Get a list of all values in this Map.
+	 * @deprecated Use a general polyfill instead.
+	 */
 	public values(): T[] {
 		const result: T[] = [];
 		for (const key of Object.keys(this.map)) {
@@ -90,12 +103,18 @@ export class StringMap<T> {
 		return result;
 	}
 
-	/** Get the total amount of key-value pairs in this Map. */
+	/**
+	 * Get the total amount of key-value pairs in this Map.
+	 * @deprecated Use a general polyfill instead.
+	 */
 	public size(): number {
 		return Object.keys(this.map).length;
 	}
 
-	/** Remove all values from this Map. */
+	/**
+	 * Remove all values from this Map.
+	 * @deprecated Use a general polyfill instead.
+	 */
 	public clear(this: StringMap<T>): StringMap<T> {
 		for (const key of Object.keys(this.map)) {
 			delete this.map[key];
@@ -103,8 +122,11 @@ export class StringMap<T> {
 		return this;
 	}
 
-	/** Get a list of all key-value pairs in this Map. */
+	/**
+	 * Get a list of all key-value pairs in this Map.
+	 * @deprecated Use a general polyfill instead.
+	 */
 	public entries(): { [key: string]: T } {
-		return { ...this.map };
+		return Object.assign({}, this.map);
 	}
 }
