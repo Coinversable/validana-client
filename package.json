@@ -45,7 +45,7 @@
 		"browserify": "^16.2.3",
 		"tsify": "^4.0.1",
 		"tslint": "^5.20.1",
-		"typescript": "^3.2.4",
+		"typescript": "^3.7.0",
 		"uglify-js": "^3.6.9"
 	},
 	"nyc": {
