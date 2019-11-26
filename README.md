@@ -1,3 +1,5 @@
+This is the semi-annual release channel for Validana. For the latest version contact us via info@coinversable.com.
+
 About Validana.io
 =================
 
