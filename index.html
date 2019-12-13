@@ -211,7 +211,9 @@
 					console.log(payload, currentContract.validanaVersion);
 					if (currentContract.hash === cContractHash) {
 						if (payload.validanaVersion === 1) {
-							delete payload.validanaVersion; //Ensure backwards compatibility
+							//Ensure backwards compatibility
+							delete payload.validanaVersion;
+							payload.template = JSON.stringify(payload.template);
 						}
 					}
 
