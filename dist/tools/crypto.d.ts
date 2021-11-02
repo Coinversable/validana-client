@@ -6,6 +6,7 @@
  * found in the LICENSE file at https://validana.io/license
  */
 /// <reference types="node" />
+import { Buffer } from "buffer";
 /** Functions for hashing, and encoding binary data into other formats and back again. */
 export declare class Crypto {
     private static readonly base58chars;

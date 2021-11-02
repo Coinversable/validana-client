@@ -7,6 +7,7 @@
  */
 /// <reference types="node" />
 import * as ecurve from "ecurve";
+import { Buffer } from "buffer";
 /** A public key. We use and accept compressed keys only. */
 export declare class PublicKey {
     protected static readonly secp256k1: ecurve.Curve;

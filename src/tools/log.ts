@@ -5,10 +5,11 @@
  * Use of this source code is governed by a AGPLv3-style license that can be
  * found in the LICENSE file at https://validana.io/license
  */
+/* eslint-disable no-console */
 
-import * as Raven from "raven-js";
+import * as Sentry from "@sentry/browser";
+import { Extra, Primitive, ScopeContext } from "@sentry/types";
 
-// tslint:disable:no-console
 export class Log {
 	private static reportErrors: boolean = false;
 	public static readonly Debug = 0;
@@ -19,21 +20,30 @@ export class Log {
 	public static readonly None = 5;
 	public static Level = Log.Warning;
 	//We do not include package.json for the version here as this will not work in the browser.
-	public static options: Raven.RavenOptions & { tags: {}; extra: {} } = { tags: { clientVersion: "2.0.5" }, extra: {} };
+	public static options: Partial<ScopeContext> & { tags: { [key: string]: Primitive }, extra: Extra } = { tags: { clientVersion: "2.2.0" }, extra: {} };
+	private static release?: string;
 
 	/**
 	 * Set this logger to report errors. Does not work in node.js!
-	 * @param dns The sentry dns url.
-	 * @param ignoreLocalhost Whether to ignore errors that occure at localhost
-	 * @throws if dns is not valid.
+	 * @param dsn The sentry dsn url.
+	 * @param ignoreLocalhost Whether to ignore errors that occur at localhost
+	 * @param version The release version
+	 * @throws if dsn is not valid.
 	 */
-	public static setReportErrors(dns: string, ignoreLocalhost: boolean): void {
+	public static setReportErrors(dsn: string, ignoreLocalhost: boolean, version?: string): void {
 		if (typeof window !== "undefined") {
 			Log.reportErrors = true;
-			Raven.config(dns, {
-				autoBreadcrumbs: false,
-				ignoreUrls: ignoreLocalhost ? [/localhost/, /127(?:\.\d{1,3}){3}/, /::1/] : []
-			}).install();
+			Sentry.init({
+				dsn,
+				defaultIntegrations: false,
+				release: version ?? Log.release,
+				beforeSend: (event) => {
+					if (ignoreLocalhost && window.location.hostname.match(/localhost|127(?:\.\d{1,3}){3}|::1/) !== null) {
+						return null;
+					}
+					return event;
+				}
+			});
 		}
 	}
 
@@ -47,15 +57,16 @@ export class Log {
 	 * @param addr the address of the user
 	 */
 	public static setUser(addr: string): void {
-		Raven.setUserContext({ id: addr });
+		Sentry.setUser({ id: addr });
 	}
-
+	
 	/**
-	 * Set the release version of the dashboard.
-	 * @param version the version
-	 */
+	* Set the release version of the dashboard.
+	* @param version the version
+	* @deprecated Set version in setReportErrors() instead.
+	*/
 	public static setRelease(version: string): void {
-		Raven.setRelease(version);
+		Log.release = version;
 	}
 
 	/**
@@ -87,10 +98,13 @@ export class Log {
 				//Regex any potential private keys away.
 				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
-					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-					Raven.captureBreadcrumb({ level: "info", message: msg, data: { stack: error.stack } });
+					//Some browsers/scripts? make error.message readonly, so avoid editing if not needed
+					if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+						error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+					}
+					Sentry.addBreadcrumb({ level: Sentry.Severity.Info, message: msg, data: { stack: error.stack } });
 				} else {
-					Raven.captureBreadcrumb({ level: "info", message: msg });
+					Sentry.addBreadcrumb({ level: Sentry.Severity.Info, message: msg });
 				}
 			}
 		}
@@ -108,10 +122,13 @@ export class Log {
 				//Regex any potential private keys away.
 				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
-					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-					Raven.captureBreadcrumb({ level: "warning", message: msg, data: { stack: error.stack } });
+					//Some browsers/scripts? make error.message readonly, so avoid editing if not needed
+					if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+						error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+					}
+					Sentry.addBreadcrumb({ level: Sentry.Severity.Warning, message: msg, data: { stack: error.stack } });
 				} else {
-					Raven.captureBreadcrumb({ level: "warning", message: msg });
+					Sentry.addBreadcrumb({ level: Sentry.Severity.Warning, message: msg });
 				}
 			}
 		}
@@ -129,10 +146,13 @@ export class Log {
 				//Regex any potential private keys away.
 				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
-					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-					Raven.captureException(error, { level: "error", extra: { message: msg } });
+					//Some browsers/scripts? make error.message readonly, so avoid editing if not needed
+					if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+						error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+					}
+					Sentry.captureException(error, Object.assign({ level: Sentry.Severity.Error, extra: { message: msg } }, this.options));
 				} else {
-					Raven.captureMessage(msg, { level: "error" });
+					Sentry.captureMessage(msg, Object.assign({ level: Sentry.Severity.Error }, this.options));
 				}
 			}
 		}
@@ -150,11 +170,13 @@ export class Log {
 				//Regex any potential private keys away.
 				msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
 				if (error !== undefined) {
-					error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-					//Typecast because of buggy raven js types
-					Raven.captureException(error, { level: "fatal" as "critical", extra: { message: msg } });
+					//Some browsers/scripts? make error.message readonly, so avoid editing if not needed
+					if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+						error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+					}
+					Sentry.captureException(error, Object.assign({ level: Sentry.Severity.Fatal, extra: { message: msg } }, this.options));
 				} else {
-					Raven.captureMessage(msg, { level: "fatal" as "critical" });
+					Sentry.captureMessage(msg, Object.assign({ level: Sentry.Severity.Fatal }, this.options));
 				}
 			}
 		}

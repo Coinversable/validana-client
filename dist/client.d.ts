@@ -6,7 +6,8 @@
  * found in the LICENSE file at https://validana.io/license
  */
 /// <reference types="node" />
-declare const EventEmitter: typeof NodeJS.EventEmitter;
+import { EventEmitter } from "events";
+import { Buffer } from "buffer";
 import { VObserver } from "./tools/observer";
 import { PrivateKey } from "./key";
 import { Contract, TxResponseOrPush, TxRequest } from "./api";
@@ -80,8 +81,10 @@ export declare class Client extends EventEmitter {
     init(signPrefix: string, serviceURL: string, reconnectTimeout?: number, maxReconnectTimeout?: number): Promise<void>;
     /** @deprecated processURL and signMethod are no longer supported. Simply create a second client to use a different process url. */
     init(signPrefix: string, serviceURL: string, processURL?: string, signMethod?: string, reconnectTimeout?: number, maxReconnectTimeout?: number): Promise<void>;
-    /** Get whether there currently is a connection to the server. 0 = yes, 1+ = no for various reasons. */
+    /** @deprecated Replaced with connectionStatus() for a less confusion name. */
     isConnected(): Connected;
+    /** Get the current connection status. 0 = connected, 1+ = not connected for various reasons. */
+    connectionStatus(): Connected;
     /**
      * Helper to sign data with a private key for contract.
      * @deprecated use PrivateKey.sign() instead.
@@ -116,7 +119,7 @@ export declare class Client extends EventEmitter {
      */
     signAndSend(privateKey: PrivateKey, transactionId: Buffer, contractHash: Buffer, payload: {
         [key: string]: any;
-    }, validTill?: number, quickFail?: boolean): Promise<void>;
+    }, validTill?: number, quickFail?: boolean): Promise<TxResponseOrPush | undefined>;
     /**
      * Get a transaction once it has been processed (which may take a while).
      * @throws if there are problems with the internet connection or the client is not (correctly) initialized
@@ -159,4 +162,3 @@ export declare class Client extends EventEmitter {
     /** @deprecated No longer available. */
     hasChanged(): boolean;
 }
-export {};

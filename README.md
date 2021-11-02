@@ -23,7 +23,7 @@ All Validana packages and smart contracts are entirely written in Typescript / J
 
 The Validana Client (This package)
 ==================================
-The Validana Client repository contains components needed for interacting with the Validana Server through a WebSocket. It is not meant to be run standalone, but for convenience a html file is included to demo basic functions. It can either be installed as an npm package (dependency: "validana-client":"git+ssh://git@github.com:Coinversable/validana-client.git", also suitable for Node.js) or bundle.js can be included as script on the webpage, in which case everything will be available under window.Validana. The Validana Client assumes an es6 compatible environment. In case es5 needs to be supported polyfills should be used, however transpiling is not needed.
+The Validana Client repository contains components needed for interacting with the Validana Server through a WebSocket. It is not meant to be run standalone, but for convenience a html file is included to demo basic functions. It can either be installed as an npm package (dependency: "validana-client":"git+ssh://git@github.com:Coinversable/validana-client.git", also suitable for Node.js) or bundle.js can be included as script on the webpage, in which case everything will be available under window.Validana. If used as a package in a browser environment it requires the streams and crypto packages to be available (`node: {crypto: true, stream: true}` in webpack config). The Validana Client assumes an es6 compatible environment. In case es5 needs to be supported polyfills should be used, however transpiling is not needed.
 
 Setup Development environment
 -----------------------------
@@ -36,7 +36,7 @@ Setup Validana Client
 2. Clone the project with git.
 3. Navigate to project root.
 4. Run `yarn install`
-5. (Optional) Run `yarn link validana-client` if you also have Validana Client linked.
+5. (Optional) Run `yarn link` so it can be linked to other packages.
 
 Build Validana Client
 ---------------------

@@ -170,7 +170,6 @@
 					const privateKey = Validana.PrivateKey.fromWIF(document.getElementById("privateKey").value);
 					const transactionId = Validana.Crypto.id();
 					const contractHash = Validana.Crypto.hexToBinary(currentContract.hash);
-					console.log(currentContract);
 					const payload = {}; //Simple key-value pair with a key for every key in the template and value of what is defined in the template.
 					for (const elem of document.getElementById("contractDiv").childNodes) {
 						if (elem.nodeName === "INPUT" || elem.nodeName === "TEXTAREA") {
@@ -208,7 +207,6 @@
 							}
 						}
 					}
-					console.log(payload, currentContract.validanaVersion);
 					if (currentContract.hash === cContractHash) {
 						if (payload.validanaVersion === 1) {
 							//Ensure backwards compatibility

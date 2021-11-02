@@ -1,6 +1,6 @@
 {
 	"name": "@coinversable/validana-client",
-	"version": "2.0.5",
+	"version": "2.2.0",
 	"description": "The client for Validana to connect to the Server.",
 	"author": "Coinversable BV",
 	"homepage": "https://validana.io/",
@@ -10,7 +10,10 @@
 		"url": "https://github.com/Coinversable/validana-client.git"
 	},
 	"main": "dist/index.js",
-	"typings": "dist/index.d.ts",
+	"browser": {
+		"ws": false,
+		"crypto": false
+	},
 	"keywords": [
 		"coinversable",
 		"validana",
@@ -19,10 +22,10 @@
 		"frontend"
 	],
 	"scripts": {
-		"tslint": "tslint --project tsconfig.json -c tslint.json && tslint --project src/__tests__/tsconfig.json -c tslint.json",
+		"lint": "eslint .",
 		"keys": "node --no-warnings -e \"const PK = require('./dist/key.js').PrivateKey; const key = process.argv[1] ? PK.fromWIF(process.argv[1]) : PK.generate(); console.log(key.toWIF(), key.publicKey.toString('hex'), key.getAddress())\"",
 		"keysjson": "node --no-warnings -pe \"const PK = require('./dist/key.js').PrivateKey; const key = process.argv[1] ? PK.fromWIF(process.argv[1]) : PK.generate(); JSON.stringify({privateKey: key.toWIF(), publicKey: key.publicKey.toString('hex'), address: key.getAddress()})\"",
-		"build": "tsc && tsc --declaration true --emitDeclarationOnly true --removeComments false && browserify src/index.ts --plugin=tsify --standalone Validana | uglifyjs -c -o dist/bundle.js",
+		"build": "tsc && tsc --declaration true --emitDeclarationOnly true --removeComments false && browserify src/index.ts --plugin=tsify --standalone Validana | terser -c -o dist/bundle.js",
 		"test": "tsc -p src/__tests__/tsconfig.json && nyc jasmine dist/__tests__/**/*.js"
 	},
 	"files": [
@@ -32,21 +35,25 @@
 	],
 	"dependencies": {
 		"@types/ecurve": "^1.0.0",
+		"@sentry/browser": "6.13.3",
 		"bigi": "^1.4.2",
-		"buffer": "^5.1.0",
+		"buffer": "^6.0.3",
 		"create-hash": "^1.2.0",
 		"ecurve": "^1.0.6",
 		"events": "^3.0.0",
-		"raven-js": "^3.24.0",
-		"ws": "^7.0.0"
+		"ws": "^8.2.3"
 	},
 	"devDependencies": {
-		"@types/jasmine": "*",
-		"browserify": "^16.2.3",
-		"tsify": "^4.0.1",
-		"tslint": "^5.20.1",
-		"typescript": "^3.7.0",
-		"uglify-js": "^3.6.9"
+		"@types/jasmine": "^3.10.1",
+		"@typescript-eslint/eslint-plugin": "^5.2.0",
+		"@typescript-eslint/parser": "^5.2.0",
+		"browserify": "^17.0.0",
+		"eslint": "^8.1.0",
+		"eslint-plugin-jsdoc": "^37.0.3",
+		"eslint-plugin-prefer-arrow": "^1.2.2",
+		"terser": "^5.9.0",
+		"tsify": "^5.0.2",
+		"typescript": "^4.4.4"
 	},
 	"nyc": {
 		"sourceMap": false,

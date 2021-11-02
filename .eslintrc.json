@@ -1,0 +1,200 @@
+{
+	"env": {
+		"es6": true,
+		"node": true
+	},
+	"extends": [
+		"plugin:@typescript-eslint/recommended",
+		"plugin:@typescript-eslint/recommended-requiring-type-checking"
+	],
+	"parser": "@typescript-eslint/parser",
+	"parserOptions": {
+		"project": [
+			"tsconfig.json",
+			"src/__tests__/tsconfig.json"
+		],
+		"sourceType": "module"
+	},
+	"ignorePatterns": [
+		"*.js",
+		"*.d.ts"
+	],
+	"plugins": [
+		"eslint-plugin-jsdoc",
+		"@typescript-eslint"
+	],
+	"rules": {
+		"@typescript-eslint/adjacent-overload-signatures": "warn",
+		"@typescript-eslint/array-type": [
+			"warn",
+			{
+				"default": "array-simple"
+			}
+		],
+		"@typescript-eslint/ban-types": [
+			"warn",
+			{
+				"types": {
+					"object": false,
+					"Object": {
+						"message": "Avoid using the `Object` type. Did you mean `object`?"
+					},
+					"Function": {
+						"message": "Avoid using the `Function` type. Prefer a specific function type, like `() => void`."
+					},
+					"Boolean": {
+						"message": "Avoid using the `Boolean` type. Did you mean `boolean`?"
+					},
+					"Number": {
+						"message": "Avoid using the `Number` type. Did you mean `number`?"
+					},
+					"String": {
+						"message": "Avoid using the `String` type. Did you mean `string`?"
+					},
+					"Symbol": {
+						"message": "Avoid using the `Symbol` type. Did you mean `symbol`?"
+					}
+				}
+			}
+		],
+		"@typescript-eslint/consistent-type-assertions": "warn",
+		"@typescript-eslint/dot-notation": "warn",
+		"@typescript-eslint/explicit-module-boundary-types": "off",
+		"@typescript-eslint/indent": [
+			"warn",
+			"tab",
+			{
+				"ObjectExpression": "first",
+				"ArrayExpression": "off",
+				"CallExpression": {
+					"arguments": "off"
+				},
+				"SwitchCase": 1
+			}
+		],
+		"@typescript-eslint/member-ordering": [
+			"warn",
+			{
+				"default": [
+					"field",
+					"constructor",
+					"method"
+				]
+			}
+		],
+		"@typescript-eslint/naming-convention": [
+			"warn",
+			{
+				"selector": "enumMember",
+				"format": [
+					"camelCase",
+					"PascalCase"
+				]
+			}
+		],
+		"@typescript-eslint/no-empty-function": "off",
+		"@typescript-eslint/no-empty-interface": "warn",
+		"@typescript-eslint/no-explicit-any": "off",
+		"@typescript-eslint/no-floating-promises": "off",
+		"@typescript-eslint/no-inferrable-types": "off",
+		"no-implied-eval": "off",
+		"@typescript-eslint/no-misused-new": "warn",
+		"@typescript-eslint/no-misused-promises": [
+			"warn",
+			{
+				"checksVoidReturn": false
+			}
+		],
+		"@typescript-eslint/no-namespace": "warn",
+		"@typescript-eslint/no-non-null-assertion": "off",
+		"@typescript-eslint/no-parameter-properties": "off",
+		"@typescript-eslint/no-shadow": "warn",
+		"@typescript-eslint/no-unsafe-argument": "off",
+		"@typescript-eslint/no-unsafe-assignment": "off",
+		"@typescript-eslint/no-unsafe-call": "off",
+		"@typescript-eslint/no-unsafe-member-access": "off",
+		"@typescript-eslint/no-unsafe-return": "off",
+		"@typescript-eslint/no-unused-expressions": "warn",
+		"@typescript-eslint/no-unused-vars": "off",
+		"@typescript-eslint/no-use-before-define": "off",
+		"@typescript-eslint/no-var-requires": "warn",
+		"@typescript-eslint/prefer-for-of": "warn",
+		"@typescript-eslint/prefer-function-type": "warn",
+		"@typescript-eslint/prefer-namespace-keyword": "warn",
+		"@typescript-eslint/prefer-regexp-exec": "off",
+		"@typescript-eslint/restrict-plus-operands": "off",
+		"@typescript-eslint/restrict-template-expressions": "off",
+		"@typescript-eslint/strict-boolean-expressions": "warn",
+		"@typescript-eslint/triple-slash-reference": [
+			"warn",
+			{
+				"path": "always",
+				"types": "prefer-import",
+				"lib": "always"
+			}
+		],
+		"@typescript-eslint/unbound-method": "off",
+		"@typescript-eslint/unified-signatures": "warn",
+		"@typescript-eslint/await-thenable": "warn",
+		"@typescript-eslint/no-for-in-array": "warn",
+		"@typescript-eslint/no-implied-eval": "warn",
+		"@typescript-eslint/no-unnecessary-type-assertion": "warn",
+		"@typescript-eslint/require-await": "warn",
+		"comma-dangle": "warn",
+		"complexity": "off",
+		"constructor-super": "warn",
+		"eol-last": "off",
+		"eqeqeq": [
+			"warn",
+			"smart"
+		],
+		"guard-for-in": "warn",
+		"id-match": "warn",
+		"jsdoc/check-alignment": "warn",
+		"max-classes-per-file": "off",
+		"max-len": [
+			"warn",
+			{
+				"code": 180
+			}
+		],
+		"new-parens": "warn",
+		"no-bitwise": "off",
+		"no-caller": "warn",
+		"no-cond-assign": "warn",
+		"no-console": "warn",
+		"no-debugger": "warn",
+		"no-empty": "off",
+		"no-eval": "warn",
+		"no-fallthrough": "off",
+		"no-invalid-this": "off",
+		"no-multiple-empty-lines": [
+			"warn",
+			{
+				"max": 2,
+				"maxEOF": 0
+			}
+		],
+		"no-new-wrappers": "warn",
+		"no-shadow": "off",
+		"no-throw-literal": "warn",
+		"no-trailing-spaces": "warn",
+		"no-undef-init": "warn",
+		"no-underscore-dangle": "off",
+		"no-unsafe-finally": "warn",
+		"no-unused-labels": "warn",
+		"no-var": "warn",
+		"object-shorthand": "warn",
+		"one-var": [
+			"warn",
+			"never"
+		],
+		"prefer-const": "warn",
+		"prefer-rest-params":"warn",
+		"prefer-spread":"warn",
+		"radix": "warn",
+		"semi": "warn",
+		"use-isnan": "warn",
+		"valid-typeof": "off"
+	}
+}

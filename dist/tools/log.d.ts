@@ -5,7 +5,7 @@
  * Use of this source code is governed by a AGPLv3-style license that can be
  * found in the LICENSE file at https://validana.io/license
  */
-import * as Raven from "raven-js";
+import { Extra, Primitive, ScopeContext } from "@sentry/types";
 export declare class Log {
     private static reportErrors;
     static readonly Debug = 0;
@@ -15,17 +15,21 @@ export declare class Log {
     static readonly Fatal = 4;
     static readonly None = 5;
     static Level: number;
-    static options: Raven.RavenOptions & {
-        tags: {};
-        extra: {};
+    static options: Partial<ScopeContext> & {
+        tags: {
+            [key: string]: Primitive;
+        };
+        extra: Extra;
     };
+    private static release?;
     /**
      * Set this logger to report errors. Does not work in node.js!
-     * @param dns The sentry dns url.
-     * @param ignoreLocalhost Whether to ignore errors that occure at localhost
-     * @throws if dns is not valid.
+     * @param dsn The sentry dsn url.
+     * @param ignoreLocalhost Whether to ignore errors that occur at localhost
+     * @param version The release version
+     * @throws if dsn is not valid.
      */
-    static setReportErrors(dns: string, ignoreLocalhost: boolean): void;
+    static setReportErrors(dsn: string, ignoreLocalhost: boolean, version?: string): void;
     /** Is this logger registerd to report errors. Always returns false for node.js environment. */
     static isReportingErrors(): boolean;
     /**
@@ -34,9 +38,10 @@ export declare class Log {
      */
     static setUser(addr: string): void;
     /**
-     * Set the release version of the dashboard.
-     * @param version the version
-     */
+    * Set the release version of the dashboard.
+    * @param version the version
+    * @deprecated Set version in setReportErrors() instead.
+    */
     static setRelease(version: string): void;
     /**
      * Detailed information about the program flow that is used for debugging problems.

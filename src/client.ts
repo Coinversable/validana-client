@@ -6,10 +6,9 @@
  * found in the LICENSE file at https://validana.io/license
  */
 
-// tslint:disable:no-var-requires
-const Buffer: typeof global.Buffer = require("buffer").Buffer;
-const EventEmitter: typeof NodeJS.EventEmitter = require("events").EventEmitter;
-const WebSocket: any = typeof window === "undefined" ? require("ws") : (window as any).WebSocket;
+const WebSocket: typeof window.WebSocket = typeof window === "undefined" ? require("ws") : window.WebSocket;
+import { EventEmitter } from "events";
+import { Buffer } from "buffer";
 import { Log } from "./tools/log";
 import { Crypto } from "./tools/crypto";
 import { VObserver } from "./tools/observer";
@@ -103,7 +102,9 @@ export class Client extends EventEmitter {
 			if (typeof reconnectTimeout === "string" && reconnectTimeout !== serviceURL) {
 				throw new Error("Client init no longer supports processURL.");
 			}
+			//eslint-disable-next-line prefer-rest-params
 			reconnectTimeout = arguments[4] === undefined ? 5000 : arguments[4];
+			//eslint-disable-next-line prefer-rest-params
 			maxReconnectTimeout = arguments[5] === undefined ? 60000 : arguments[5];
 		}
 
@@ -123,8 +124,13 @@ export class Client extends EventEmitter {
 		return this.initPromise;
 	}
 
-	/** Get whether there currently is a connection to the server. 0 = yes, 1+ = no for various reasons. */
+	/** @deprecated Replaced with connectionStatus() for a less confusion name. */
 	public isConnected(): Connected {
+		return this.connected;
+	}
+
+	/** Get the current connection status. 0 = connected, 1+ = not connected for various reasons. */
+	public connectionStatus(): Connected {
 		return this.connected;
 	}
 
@@ -182,13 +188,16 @@ export class Client extends EventEmitter {
 				}
 			}
 			for (const key of Object.keys(contract.template)) {
-				if ((payload as any)[key] === undefined && !contract.template[key].type.endsWith("?")) {
+				if (payload[key] === undefined && !contract.template[key].type.endsWith("?")) {
 					throw new Error(`Payload not valid for contract, missing key: ${key}.`);
 				}
 			}
 			const id = Crypto.id();
 			try {
-				await this.signAndSend(privateKey, id, Crypto.hexToBinary(contract.hash), payload, validTill, quickFail);
+				const result = await this.signAndSend(privateKey, id, Crypto.hexToBinary(contract.hash), payload, validTill, quickFail);
+				if (result !== undefined) {
+					return result;
+				}
 			} catch (error) {
 				throw new Error(`Failed to deliver transaction: ${error.message}`);
 			}
@@ -213,7 +222,7 @@ export class Client extends EventEmitter {
 	 * @throws if there are problems with the internet connection or the client is not (correctly) initialized
 	 */
 	public async signAndSend(privateKey: PrivateKey, transactionId: Buffer, contractHash: Buffer,
-		payload: { [key: string]: any }, validTill: number = Date.now() + 900000, quickFail = false): Promise<void> {
+		payload: { [key: string]: any }, validTill: number = Date.now() + 900000, quickFail = false): Promise<TxResponseOrPush | undefined> {
 
 		if (!this.isInitialized) {
 			throw new Error("Client is not initialized.");
@@ -227,6 +236,9 @@ export class Client extends EventEmitter {
 			Crypto.utf8ToBinary(JSON.stringify(payload))
 		]);
 		const signature = privateKey.sign(Buffer.concat([this.signPrefix!, binaryTx]));
+		if (binaryTx.length + privateKey.publicKey.length + signature.length > 100000) {
+			throw new Error("Transaction too large.");
+		}
 
 		//Create the format request
 		const request: ProcessRequest = {
@@ -236,7 +248,8 @@ export class Client extends EventEmitter {
 				signature,
 				privateKey.publicKey
 			])),
-			createTs: Date.now()
+			createTs: Date.now(),
+			wait: true
 		};
 		return this.query("process", request, quickFail);
 	}
@@ -312,7 +325,7 @@ export class Client extends EventEmitter {
 		}
 
 		//Create a websocket
-		this.webSocket = new WebSocket(this.serviceURL!) as WebSocket;
+		this.webSocket = new WebSocket(this.serviceURL!);
 
 		//When it opens.
 		this.webSocket.onopen = () => {
@@ -410,13 +423,13 @@ export class Client extends EventEmitter {
 				this.connected = Connected.NoDisconnected;
 				this.emit("connection", this.connected);
 			} else if (ev.code === 4100) {
+				this.connected = Connected.NoNotSupported;
 				//Any outstanding requests will be canceled
 				for (const requestKey of this.requestResponseMap.keys()) {
 					this.requestResponseMap.get(requestKey)!.reject(new Error("[-2] Version of api not supported."));
 					this.requestResponseMap.delete(requestKey);
 				}
 				//Version of the api not supported
-				this.connected = Connected.NoNotSupported;
 				this.emit("connection", this.connected);
 			} else {
 				if (this.connected === Connected.Yes) {

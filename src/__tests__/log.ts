@@ -1,7 +1,7 @@
-
+/* eslint-disable no-console */
 import { Log } from "../index";
 
-// tslint:disable:no-console
+
 describe("Log", () => {
 	beforeAll(() => {
 		//Do not spam process output. If sandboxing is done first this is no longer needed nor possible.
@@ -43,6 +43,7 @@ describe("Log", () => {
 		it("Log fatal error", () => expect(() => Log.fatal("test", new Error("test"))).not.toThrow());
 	});
 	describe("Log sentry settings", () => {
+		//eslint-disable-next-line @typescript-eslint/no-var-requires
 		it("Log version", () => expect(Log.options.tags.clientVersion).toBe(require("../../package.json").version));
 		it("Log reporting errors", () => expect(Log.isReportingErrors()).toBe(false));
 		it("Log set user", () => expect(() => Log.setUser("asdf")).not.toThrow());

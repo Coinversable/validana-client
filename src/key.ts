@@ -6,11 +6,10 @@
  * found in the LICENSE file at https://validana.io/license
  */
 
-// tslint:disable-next-line:no-var-requires
-const Buffer: typeof global.Buffer = require("buffer").Buffer;
-import { Crypto } from "./tools/crypto";
 import * as ecurve from "ecurve";
 import * as bigi from "bigi";
+import { Buffer } from "buffer";
+import { Crypto } from "./tools/crypto";
 
 /** A public key. We use and accept compressed keys only. */
 export class PublicKey {
@@ -34,7 +33,7 @@ export class PublicKey {
 
 	/** Check if a public key is valid or not. We accept only compressed public keys. */
 	public static isValidPublic(publicKey: Buffer): boolean {
-		if (!(publicKey instanceof Buffer) || publicKey.length !== 33 || (publicKey[0] !== 0x02 && publicKey[0] !== 0x03)) {
+		if (!(Buffer.isBuffer(publicKey)) || publicKey.length !== 33 || (publicKey[0] !== 0x02 && publicKey[0] !== 0x03)) {
 			return false;
 		}
 		try {
@@ -52,10 +51,10 @@ export class PublicKey {
 				const decodedAddress = Crypto.base58ToBinary(address);
 				const checksum = decodedAddress.slice(-4);
 				return decodedAddress.length === 25 && decodedAddress[0] === 0x00 && Crypto.hash256(decodedAddress.slice(0, -4)).slice(0, 4).equals(checksum);
-			} catch {
+			} catch (error) {
 				return false;
 			}
-		} else if (address instanceof Buffer) {
+		} else if (Buffer.isBuffer(address)) {
 			return address.length === 20;
 		} else {
 			return false;
@@ -117,7 +116,7 @@ export class PublicKey {
 	 * @throws if the data or signature have an invalid format
 	 */
 	public verify(data: Buffer, signature: Buffer): boolean {
-		if (!(data instanceof Buffer) || !(signature instanceof Buffer) || signature.length !== 64) {
+		if (!(Buffer.isBuffer(data)) || !(Buffer.isBuffer(signature)) || signature.length !== 64) {
 			throw new Error("Invalid data or signature format.");
 		}
 
@@ -251,7 +250,7 @@ export class PrivateKey extends PublicKey {
 
 	/** Sign data with this private key. Returns the signature as 32 bytes r followed by 32 bytes s. */
 	public sign(data: Buffer): Buffer {
-		if (!(data instanceof Buffer)) {
+		if (!(Buffer.isBuffer(data))) {
 			throw new Error("Invalid data format");
 		}
 

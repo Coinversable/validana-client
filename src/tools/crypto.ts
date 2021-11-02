@@ -6,8 +6,8 @@
  * found in the LICENSE file at https://validana.io/license
  */
 
-// tslint:disable:no-var-requires
-const Buffer: typeof global.Buffer = require("buffer").Buffer;
+/* eslint-disable @typescript-eslint/no-var-requires */
+import { Buffer } from "buffer";
 const randomBytes = typeof window === "undefined" ? require("crypto").randomBytes :
 	window.crypto !== undefined ? (size: number) => window.crypto.getRandomValues(Buffer.alloc(size)) :
 		(size: number) => (window as any).msCrypto.getRandomValues(Buffer.alloc(size));
@@ -124,7 +124,8 @@ export class Crypto {
 		}
 		let result = "";
 		const digits = [0];
-		// tslint:disable-next-line:prefer-for-of Old versions don't work well with buffer it seems.
+		//Old versions don't work well with buffer it seems.
+		//eslint-disable-next-line @typescript-eslint/prefer-for-of
 		for (let j = 0; j < binary.length; j++) {
 			let byte = binary[j];
 			for (let i = 0; i < digits.length; i++) {
@@ -305,7 +306,7 @@ export class Crypto {
 		try {
 			//It will throw an error if no good random source can be found.
 			return randomBytes(16);
-		} catch {
+		} catch (error) {
 			//Use a less random source, which is good enough as security doesn't depend on it.
 			//We use use a better random to ensure there are no collisions.
 			let result: string = "";

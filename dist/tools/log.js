@@ -7,107 +7,120 @@
  * found in the LICENSE file at https://validana.io/license
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-var Raven = require("raven-js");
-var Log = (function () {
-    function Log() {
-    }
-    Log.setReportErrors = function (dns, ignoreLocalhost) {
+exports.Log = void 0;
+const Sentry = require("@sentry/browser");
+class Log {
+    static setReportErrors(dsn, ignoreLocalhost, version) {
         if (typeof window !== "undefined") {
             Log.reportErrors = true;
-            Raven.config(dns, {
-                autoBreadcrumbs: false,
-                ignoreUrls: ignoreLocalhost ? [/localhost/, /127(?:\.\d{1,3}){3}/, /::1/] : []
-            }).install();
+            Sentry.init({
+                dsn,
+                defaultIntegrations: false,
+                release: version !== null && version !== void 0 ? version : Log.release,
+                beforeSend: (event) => {
+                    if (ignoreLocalhost && window.location.hostname.match(/localhost|127(?:\.\d{1,3}){3}|::1/) !== null) {
+                        return null;
+                    }
+                    return event;
+                }
+            });
         }
-    };
-    Log.isReportingErrors = function () {
+    }
+    static isReportingErrors() {
         return Log.reportErrors;
-    };
-    Log.setUser = function (addr) {
-        Raven.setUserContext({ id: addr });
-    };
-    Log.setRelease = function (version) {
-        Raven.setRelease(version);
-    };
-    Log.debug = function (msg, error) {
+    }
+    static setUser(addr) {
+        Sentry.setUser({ id: addr });
+    }
+    static setRelease(version) {
+        Log.release = version;
+    }
+    static debug(msg, error) {
         if (Log.Level <= Log.Debug) {
             if (console.debug !== undefined) {
-                console.debug(msg + (error !== undefined ? ": " + error.stack : ""));
+                console.debug(msg + (error !== undefined ? `: ${error.stack}` : ""));
             }
             else {
-                console.info(msg + (error !== undefined ? ": " + error.stack : ""));
+                console.info(msg + (error !== undefined ? `: ${error.stack}` : ""));
             }
         }
-    };
-    Log.info = function (msg, error) {
+    }
+    static info(msg, error) {
         if (Log.Level <= Log.Info) {
-            console.info(msg + (error !== undefined ? ": " + error.stack : ""));
+            console.info(msg + (error !== undefined ? `: ${error.stack}` : ""));
             if (Log.reportErrors) {
                 msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
                 if (error !== undefined) {
-                    error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-                    Raven.captureBreadcrumb({ level: "info", message: msg, data: { stack: error.stack } });
+                    if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+                        error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+                    }
+                    Sentry.addBreadcrumb({ level: Sentry.Severity.Info, message: msg, data: { stack: error.stack } });
                 }
                 else {
-                    Raven.captureBreadcrumb({ level: "info", message: msg });
+                    Sentry.addBreadcrumb({ level: Sentry.Severity.Info, message: msg });
                 }
             }
         }
-    };
-    Log.warn = function (msg, error) {
+    }
+    static warn(msg, error) {
         if (Log.Level <= Log.Warning) {
-            console.warn(msg + (error !== undefined ? ": " + error.stack : ""));
+            console.warn(msg + (error !== undefined ? `: ${error.stack}` : ""));
             if (Log.reportErrors) {
                 msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
                 if (error !== undefined) {
-                    error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-                    Raven.captureBreadcrumb({ level: "warning", message: msg, data: { stack: error.stack } });
+                    if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+                        error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+                    }
+                    Sentry.addBreadcrumb({ level: Sentry.Severity.Warning, message: msg, data: { stack: error.stack } });
                 }
                 else {
-                    Raven.captureBreadcrumb({ level: "warning", message: msg });
+                    Sentry.addBreadcrumb({ level: Sentry.Severity.Warning, message: msg });
                 }
             }
         }
-    };
-    Log.error = function (msg, error) {
+    }
+    static error(msg, error) {
         if (Log.Level <= Log.Error) {
-            console.error(msg + (error !== undefined ? ": " + error.stack : ""));
+            console.error(msg + (error !== undefined ? `: ${error.stack}` : ""));
             if (Log.reportErrors) {
                 msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
                 if (error !== undefined) {
-                    error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-                    Raven.captureException(error, { level: "error", extra: { message: msg } });
+                    if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+                        error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+                    }
+                    Sentry.captureException(error, Object.assign({ level: Sentry.Severity.Error, extra: { message: msg } }, this.options));
                 }
                 else {
-                    Raven.captureMessage(msg, { level: "error" });
+                    Sentry.captureMessage(msg, Object.assign({ level: Sentry.Severity.Error }, this.options));
                 }
             }
         }
-    };
-    Log.fatal = function (msg, error) {
+    }
+    static fatal(msg, error) {
         if (Log.Level <= Log.Fatal) {
-            console.error(msg + (error !== undefined ? ": " + error.stack : ""));
+            console.error(msg + (error !== undefined ? `: ${error.stack}` : ""));
             if (Log.reportErrors) {
                 msg = msg.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
                 if (error !== undefined) {
-                    error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
-                    Raven.captureException(error, { level: "fatal", extra: { message: msg } });
+                    if (error.message.match(/[KL][a-zA-Z1-9]{51}/g) !== null) {
+                        error.message = error.message.replace(/[KL][a-zA-Z1-9]{51}/g, "**********");
+                    }
+                    Sentry.captureException(error, Object.assign({ level: Sentry.Severity.Fatal, extra: { message: msg } }, this.options));
                 }
                 else {
-                    Raven.captureMessage(msg, { level: "fatal" });
+                    Sentry.captureMessage(msg, Object.assign({ level: Sentry.Severity.Fatal }, this.options));
                 }
             }
         }
-    };
-    Log.reportErrors = false;
-    Log.Debug = 0;
-    Log.Info = 1;
-    Log.Warning = 2;
-    Log.Error = 3;
-    Log.Fatal = 4;
-    Log.None = 5;
-    Log.Level = Log.Warning;
-    Log.options = { tags: { clientVersion: "2.0.5" }, extra: {} };
-    return Log;
-}());
+    }
+}
 exports.Log = Log;
+Log.reportErrors = false;
+Log.Debug = 0;
+Log.Info = 1;
+Log.Warning = 2;
+Log.Error = 3;
+Log.Fatal = 4;
+Log.None = 5;
+Log.Level = Log.Warning;
+Log.options = { tags: { clientVersion: "2.2.0" }, extra: {} };

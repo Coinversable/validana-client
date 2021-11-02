@@ -22,6 +22,8 @@ export interface ProcessRequest {
     base64tx: string;
     /** Optional info about when it was created. */
     createTs?: number;
+    /** Wait till transaction is processed before responding or not. */
+    wait?: boolean;
 }
 export interface TxRequest {
     /** Transaction id (hex) */
